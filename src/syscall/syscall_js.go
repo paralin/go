@@ -228,8 +228,6 @@ var ForkLock sync.RWMutex
 
 type WaitStatus uint32
 
-func (w WaitStatus) Exited() bool       { return false }
-func (w WaitStatus) ExitStatus() int    { return 0 }
 func (w WaitStatus) Signaled() bool     { return false }
 func (w WaitStatus) Signal() Signal     { return 0 }
 func (w WaitStatus) CoreDump() bool     { return false }
@@ -331,12 +329,6 @@ func Gettimeofday(tv *Timeval) error { return ENOSYS }
 
 func Kill(pid int, signum Signal) error { return ENOSYS }
 func Sendfile(outfd int, infd int, offset *int64, count int) (written int, err error) {
-	return 0, ENOSYS
-}
-func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle uintptr, err error) {
-	return 0, 0, ENOSYS
-}
-func Wait4(pid int, wstatus *WaitStatus, options int, rusage *Rusage) (wpid int, err error) {
 	return 0, ENOSYS
 }
 

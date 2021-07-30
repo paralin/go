@@ -487,10 +487,6 @@ func Dup2(fd, newfd int) error {
 	return ENOSYS
 }
 
-func Pipe(fd []int) error {
-	return ENOSYS
-}
-
 func fsCall(name string, args ...any) (js.Value, error) {
 	type callResult struct {
 		val js.Value

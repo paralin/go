@@ -116,9 +116,6 @@ func bootstrapBuildTools() {
 	}
 	xprintf("Building Go toolchain1 using %s.\n", goroot_bootstrap)
 
-	mkbuildcfg(pathf("%s/src/internal/buildcfg/zbootstrap.go", goroot))
-	mkobjabi(pathf("%s/src/cmd/internal/objabi/zbootstrap.go", goroot))
-
 	// Use $GOROOT/pkg/bootstrap as the bootstrap workspace root.
 	// We use a subdirectory of $GOROOT/pkg because that's the
 	// space within $GOROOT where we store all generated objects.
@@ -129,6 +126,34 @@ func bootstrapBuildTools() {
 	xatexit(func() { xremoveall(workspace) })
 	base := pathf("%s/src/bootstrap", workspace)
 	xmkdirall(base)
+
+	// Set up environment for invoking Go 1.4 go command.
+	// GOROOT points at Go 1.4 GOROOT,
+	// GOPATH points at our bootstrap workspace,
+	// GOBIN is empty, so that binaries are installed to GOPATH/bin,
+	// and GOOS, GOHOSTOS, GOARCH, and GOHOSTOS are empty,
+	// so that Go 1.4 builds whatever kind of binary it knows how to build.
+	// Restore GOROOT, GOPATH, and GOBIN when done.
+	// Don't bother with GOOS, GOHOSTOS, GOARCH, and GOHOSTARCH,
+	// because setup will take care of those when bootstrapBuildTools returns.
+
+	defer os.Setenv("GOROOT", os.Getenv("GOROOT"))
+	os.Setenv("GOROOT", goroot_bootstrap)
+
+	defer os.Setenv("GOPATH", os.Getenv("GOPATH"))
+	os.Setenv("GOPATH", workspace)
+
+	defer os.Setenv("GOBIN", os.Getenv("GOBIN"))
+	os.Setenv("GOBIN", "")
+
+	os.Setenv("GOOS", "")
+	os.Setenv("GOHOSTOS", "")
+	os.Setenv("GOARCH", "")
+	os.Setenv("GOHOSTARCH", "")
+
+	// Create the build config files.
+	mkbuildcfg(pathf("%s/src/internal/buildcfg/zbootstrap.go", goroot))
+	mkobjabi(pathf("%s/src/cmd/internal/objabi/zbootstrap.go", goroot))
 
 	// Copy source code into $GOROOT/pkg/bootstrap and rewrite import paths.
 	writefile("module bootstrap\n", pathf("%s/%s", base, "go.mod"), 0)
@@ -175,30 +200,6 @@ func bootstrapBuildTools() {
 			return nil
 		})
 	}
-
-	// Set up environment for invoking Go 1.4 go command.
-	// GOROOT points at Go 1.4 GOROOT,
-	// GOPATH points at our bootstrap workspace,
-	// GOBIN is empty, so that binaries are installed to GOPATH/bin,
-	// and GOOS, GOHOSTOS, GOARCH, and GOHOSTOS are empty,
-	// so that Go 1.4 builds whatever kind of binary it knows how to build.
-	// Restore GOROOT, GOPATH, and GOBIN when done.
-	// Don't bother with GOOS, GOHOSTOS, GOARCH, and GOHOSTARCH,
-	// because setup will take care of those when bootstrapBuildTools returns.
-
-	defer os.Setenv("GOROOT", os.Getenv("GOROOT"))
-	os.Setenv("GOROOT", goroot_bootstrap)
-
-	defer os.Setenv("GOPATH", os.Getenv("GOPATH"))
-	os.Setenv("GOPATH", workspace)
-
-	defer os.Setenv("GOBIN", os.Getenv("GOBIN"))
-	os.Setenv("GOBIN", "")
-
-	os.Setenv("GOOS", "")
-	os.Setenv("GOHOSTOS", "")
-	os.Setenv("GOARCH", "")
-	os.Setenv("GOHOSTARCH", "")
 
 	// Run Go 1.4 to build binaries. Use -gcflags=-l to disable inlining to
 	// workaround bugs in Go 1.4's compiler. See discussion thread:

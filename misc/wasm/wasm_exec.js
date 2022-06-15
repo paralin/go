@@ -11,19 +11,21 @@
 		return err;
 	};
 
+  let outputBuf = "";
+  const defaultWriteSync = (fd, buf) => {
+    outputBuf += decoder.decode(buf);
+    const nl = outputBuf.lastIndexOf("\n");
+    if (nl != -1) {
+      console.error(outputBuf.substr(0, nl));
+      outputBuf = outputBuf.substr(nl + 1);
+    }
+    return buf.length;
+  };
+
 	if (!globalThis.fs) {
-		let outputBuf = "";
 		globalThis.fs = {
 			constants: { O_WRONLY: -1, O_RDWR: -1, O_CREAT: -1, O_TRUNC: -1, O_APPEND: -1, O_EXCL: -1 }, // unused
-			writeSync(fd, buf) {
-				outputBuf += decoder.decode(buf);
-				const nl = outputBuf.lastIndexOf("\n");
-				if (nl != -1) {
-					console.log(outputBuf.substr(0, nl));
-					outputBuf = outputBuf.substr(nl + 1);
-				}
-				return buf.length;
-			},
+			writeSync: defaultWriteSync,
 			write(fd, buf, offset, length, position, callback) {
 				if (offset !== 0 || length !== buf.length || position !== null) {
 					callback(enosys());
@@ -231,7 +233,7 @@
 						const fd = getInt64(sp + 8);
 						const p = getInt64(sp + 16);
 						const n = this.mem.getInt32(sp + 24, true);
-						fs.writeSync(fd, new Uint8Array(this._inst.exports.mem.buffer, p, n));
+						defaultWriteSync(fd, new Uint8Array(this._inst.exports.mem.buffer, p, n));
 					},
 
 					// func resetMemoryDataView()

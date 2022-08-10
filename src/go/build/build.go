@@ -339,20 +339,12 @@ func defaultContext() Context {
 	defaultReleaseTags = append([]string{}, c.ReleaseTags...) // our own private copy
 
 	env := os.Getenv("CGO_ENABLED")
-	if env == "" {
-		env = defaultCGO_ENABLED
-	}
 	switch env {
 	case "1":
 		c.CgoEnabled = true
 	case "0":
 		c.CgoEnabled = false
 	default:
-		// cgo must be explicitly enabled for cross compilation builds
-		if runtime.GOARCH == c.GOARCH && runtime.GOOS == c.GOOS {
-			c.CgoEnabled = cgoEnabled[c.GOOS+"/"+c.GOARCH]
-			break
-		}
 		c.CgoEnabled = false
 	}
 

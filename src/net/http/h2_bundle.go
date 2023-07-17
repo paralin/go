@@ -8893,9 +8893,11 @@ func (cc *http2ClientConn) encodeHeaders(req *Request, addGzipHeader bool, trail
 	if err != nil {
 		return nil, err
 	}
+	/* SkiffOS: hotfix for go1.20.6 and docker v24.0.4
 	if !httpguts.ValidHostHeader(host) {
 		return nil, errors.New("http2: invalid Host header")
 	}
+	*/
 
 	var path string
 	if req.Method != "CONNECT" {

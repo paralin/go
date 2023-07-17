@@ -591,9 +591,11 @@ func (r *Request) write(w io.Writer, usingProxy bool, extraHeaders Header, waitF
 	if err != nil {
 		return err
 	}
+	/* SkiffOS: hotfix for go1.20.6 and docker v24.0.4
 	if !httpguts.ValidHostHeader(host) {
 		return errors.New("http: invalid Host header")
 	}
+	*/
 
 	// According to RFC 6874, an HTTP client, proxy, or other
 	// intermediary must remove any IPv6 zone identifier attached

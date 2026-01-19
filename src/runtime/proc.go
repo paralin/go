@@ -3759,6 +3759,10 @@ top:
 		if faketime != 0 && list.empty() {
 			// Using fake time and nothing is ready; stop M.
 			// When all M's stop, checkdead will call timejump.
+			if isReactorMode() {
+				reactorScheduleReturn()
+				throw("findRunnable: reactorScheduleReturn returned")
+			}
 			stopm()
 			goto top
 		}
@@ -3792,6 +3796,11 @@ top:
 		if pollerPollUntil == 0 || pollerPollUntil > pollUntil {
 			netpollBreak()
 		}
+	}
+
+	if isReactorMode() {
+		reactorScheduleReturn()
+		throw("findRunnable: reactorScheduleReturn returned")
 	}
 	stopm()
 	goto top
